@@ -2,5 +2,9 @@
     "all_tests_pass": true,
     "watch_score": false,
     "tolerance": 0,
-    "iterations": 10
+    "iterations": 10,
+    "team": {
+        "red": "myTeam",
+        "blue": "baselineTeam"
+    }
 }
