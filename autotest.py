@@ -12,6 +12,21 @@ from json import load
 import capture
 import sys
 
+def display_help():
+    print("""\
+Pacman Enrichment Center
+v1.0.2
+
+Paramaters:
+--no-exit-clause - Do not return an exit code when running tests
+
+Required:
+The name of the test should be specified as the first argument.
+
+Example:
+autotest.py severe
+    """)
+
 def select_team():
     """
         Generate a random team tuple.
@@ -138,34 +153,41 @@ if __name__ == "__main__":
 
     test_case = "default"
     args = argv[1:]
-    if args:
-        test_case = args[0]
-    exit_code = 0
-    
-    score, all_pass, iteration, tolerance, team = get_test_params(test_case)
 
-    print("Running tests from %s.json..." % (test_case))
-    results = run_tests(track_score=score, 
-                        all_tests_pass=all_pass, 
-                        iterations=iteration, 
-                        fail_tolerance=tolerance,
-                        team=team)
+    if not args:
+        display_help()
+    else:
+        if args and not args[0].startswith("--"):
+            test_case = args[0]
+        exit_code = 0
+        disable_exit_check = "--no-exit-clause" in args
+        
+        score, all_pass, iteration, tolerance, team = get_test_params(test_case)
 
-    print("\n\nTEST RESULTS")
-    print("Ran the tests over %s iterations." % (iteration))
+        print("Running tests from %s.json..." % (test_case))
+        results = run_tests(track_score=score, 
+                            all_tests_pass=all_pass, 
+                            iterations=iteration, 
+                            fail_tolerance=tolerance,
+                            team=team)
 
-    if score:
-        print("Average score was: %s points" % (results['avg_score']))
+        print("\n\nTEST RESULTS")
+        print("Ran the tests over %s iterations." % (iteration))
 
-    if all_pass:
-        if tolerance > 0:
-            print("Note: Fail tolerance set to a max of %s tests." % (tolerance))
-        passed = results['passes_tests']
-        if passed:
-            print("All tests PASSED!")
-        else:
-            print("All tests FAILED!")
-            exit_code = 2
-    
-    print("Note: These tests may not reflect your actual grade. Consult your instructor for details.")
-    sys.exit(exit_code)
+        if score:
+            print("Average score was: %s points" % (results['avg_score']))
+
+        if all_pass:
+            if tolerance > 0:
+                print("Note: Fail tolerance set to a max of %s tests." % (tolerance))
+            passed = results['passes_tests']
+            if passed:
+                print("All tests PASSED!")
+            else:
+                print("All tests FAILED!")
+                exit_code = 2
+        
+        print("Note: These tests may not reflect your actual grade. Consult your instructor for details.")
+        
+        if not disable_exit_check:
+            sys.exit(exit_code)
