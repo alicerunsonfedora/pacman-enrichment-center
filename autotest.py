@@ -167,6 +167,8 @@ if __name__ == "__main__":
         score, all_pass, iteration, tolerance, team = get_test_params(test_case)
 
         print("Running tests from %s.json..." % (test_case))
+        if team is not None:
+            print("Team configuration: %s" % (team,))
         results = run_tests(track_score=score, 
                             all_tests_pass=all_pass, 
                             iterations=iteration, 

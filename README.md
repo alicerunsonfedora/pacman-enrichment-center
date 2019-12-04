@@ -30,5 +30,36 @@ To write a custom test, create a JSON file in the `test_cases` directory.
 
 ### Optional keys
 
-- `team`: A dictionary that defines the red and blue teams.
-- `tolerance`: How many failed tests can be considered admissible.s
+- `team`: A dictionary that defines the red and blue teams. Defaults to a random config.
+- `tolerance`: How many failed tests can be considered admissible. Defaults to `0`
+
+## Use with GitHub Actions
+
+One can write a custom workflow like the one below to use PEC as a CI test:
+
+```yml
+name: Test
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-cases:
+          - 'severe'
+          - 'bestof100'
+      fail-fast: false
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+      - name: Run ${{ matrix.test-cases }} test
+        run: python autotest.py $testcase
+        env:
+          testcase: ${{ matrix.test-cases }}
+```
