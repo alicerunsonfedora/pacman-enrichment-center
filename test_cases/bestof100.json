@@ -1,0 +1,6 @@
+{
+    "all_tests_pass": true,
+    "watch_score": true,
+    "tolerance": 20,
+    "iterations": 100
+}
