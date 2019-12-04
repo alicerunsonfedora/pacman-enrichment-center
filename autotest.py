@@ -122,7 +122,7 @@ def get_test_params(name: str):
         with open(json_path, 'r') as json_file:
             json_data = load(json_file)
             
-            required_keys = ["watch_score", "all_tests_pass", "iterations", "tolerance"]
+            required_keys = ["watch_score", "all_tests_pass", "iterations"]
             json_keys = list(json_data.keys())
             
             for key in required_keys:
@@ -132,7 +132,9 @@ def get_test_params(name: str):
             watch_score = json_data["watch_score"]
             all_tests_pass = json_data["all_tests_pass"]
             iterations = json_data["iterations"]
-            fail_tolerance = json_data["tolerance"]
+
+            if json_data["tolerance"] is not None:
+                fail_tolerance = json_data["tolerance"]
 
             if json_data["team"] is not None:
                 t = json_data["team"]
