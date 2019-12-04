@@ -13,3 +13,22 @@ To run a test with PEC, simply drop `autotest.py` and the `test_cases` folder in
 ```
 python autotest.py default
 ```
+
+## Optional runtime parameters:
+
+- `--disable-exit-clause`: Disable the exit protocol at the end of the test. This is useful for environments that don't use the exit code.
+
+## Custom test configurations
+
+To write a custom test, create a JSON file in the `test_cases` directory.
+
+### Required keys
+
+- `all_tests_pass`: Whether the test should verify that all of the tests pass
+- `watch_score`: Whether the test should keep track of the average score and present it in the test results
+- `iterations`: The number of tests to run.
+
+### Optional keys
+
+- `team`: A dictionary that defines the red and blue teams.
+- `tolerance`: How many failed tests can be considered admissible.s
