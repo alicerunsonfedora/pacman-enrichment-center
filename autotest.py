@@ -133,10 +133,10 @@ def get_test_params(name: str):
             all_tests_pass = json_data["all_tests_pass"]
             iterations = json_data["iterations"]
 
-            if json_data["tolerance"] is not None:
+            if "tolerance" in json_keys:
                 fail_tolerance = json_data["tolerance"]
 
-            if json_data["team"] is not None:
+            if "team" in json_keys:
                 t = json_data["team"]
 
                 team_keys = t.keys()
