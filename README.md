@@ -32,6 +32,7 @@ To write a custom test, create a JSON file in the `test_cases` directory.
 
 - `team`: A dictionary that defines the red and blue teams. Defaults to a random config.
 - `tolerance`: How many failed tests can be considered admissible. Defaults to `0`
+- `allow_ties`: Whether to consider ties as a pass. Defaults to `false`
 
 ## Use with GitHub Actions
 

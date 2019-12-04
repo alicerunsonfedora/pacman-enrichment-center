@@ -38,8 +38,12 @@ def select_team():
 
     return choice(choices)
 
-def run_tests(track_score: bool = False, all_tests_pass: bool = True, 
-                iterations: int = 10, fail_tolerance: int = 0, team: (str, str) = None):
+def run_tests(track_score: bool = False, 
+                all_tests_pass: bool = True, 
+                iterations: int = 10, 
+                fail_tolerance: int = 0, 
+                team: (str, str) = None,
+                allow_ties: bool = False):
     """
         Run a series of tests on capture.py given some parameters.
 
@@ -48,6 +52,7 @@ def run_tests(track_score: bool = False, all_tests_pass: bool = True,
         :param iterations: How many games to run for evaluation. Defaults to 10.
         :param fail_tolerance: How many times the tests can fail before being marked as a failure. Defaults to 0.
         :param team: The specified team configuration, if necessary. Defaults to None.
+        :param allow_ties: Whether ties should be counted as successes.
         :returns: A dictionary containing the requested information.
     """
     sum = 0
@@ -64,9 +69,9 @@ def run_tests(track_score: bool = False, all_tests_pass: bool = True,
         sum += score
 
         if red == "myTeam":
-            test_cases.append(score > 0)
+            test_cases.append(score >= 0 if allow_ties else score > 0)
         else:
-            test_cases.append(score < 0)
+            test_cases.append(score <= 0 if allow_ties else score < 0)
     
     sum /= iterations
     and_func = lambda arg1, arg2: arg1 and arg2
@@ -116,6 +121,7 @@ def get_test_params(name: str):
     iterations = 10
     fail_tolerance = 0
     team = None
+    ties = False
     
     if find_test_case(name):
         json_path = "test_cases/" + name + ".json"
@@ -133,6 +139,9 @@ def get_test_params(name: str):
             all_tests_pass = json_data["all_tests_pass"]
             iterations = json_data["iterations"]
 
+            if "allow_ties" in json_keys:
+                ties = json_data["allow_ties"]
+
             if "tolerance" in json_keys:
                 fail_tolerance = json_data["tolerance"]
 
@@ -145,7 +154,7 @@ def get_test_params(name: str):
 
                 team = t["red"], t["blue"]
     
-    return (watch_score, all_tests_pass, iterations, fail_tolerance, team)
+    return (watch_score, all_tests_pass, iterations, fail_tolerance, team, ties)
 
 if __name__ == "__main__":
     """
@@ -164,7 +173,7 @@ if __name__ == "__main__":
         exit_code = 0
         disable_exit_check = "--no-exit-clause" in args
         
-        score, all_pass, iteration, tolerance, team = get_test_params(test_case)
+        score, all_pass, iteration, tolerance, team, ties = get_test_params(test_case)
 
         print("Running tests from %s.json..." % (test_case))
         if team is not None:
@@ -173,7 +182,8 @@ if __name__ == "__main__":
                             all_tests_pass=all_pass, 
                             iterations=iteration, 
                             fail_tolerance=tolerance,
-                            team=team)
+                            team=team,
+                            allow_ties=ties)
 
         print("\n\nTEST RESULTS")
         print("Ran the tests over %s iterations." % (iteration))
