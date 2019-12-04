@@ -23,7 +23,8 @@ def select_team():
 
     return choice(choices)
 
-def run_tests(track_score: bool = False, all_tests_pass: bool = True, iterations: int = 10, fail_tolerance: int = 0):
+def run_tests(track_score: bool = False, all_tests_pass: bool = True, 
+                iterations: int = 10, fail_tolerance: int = 0, team: (str, str) = None):
     """
         Run a series of tests on capture.py given some parameters.
 
@@ -31,13 +32,14 @@ def run_tests(track_score: bool = False, all_tests_pass: bool = True, iterations
         :param all_tests_pass: Whether to verify that all of the tests pass. Defaults to True.
         :param iterations: How many games to run for evaluation. Defaults to 10.
         :param fail_tolerance: How many times the tests can fail before being marked as a failure. Defaults to 0.
+        :param team: The specified team configuration, if necessary. Defaults to None.
         :returns: A dictionary containing the requested information.
     """
     sum = 0
     test_cases = []
 
     for i in range(iterations):
-        red, blue = select_team()
+        red, blue = team if team is not None else select_team()
         simulated_args = capture.readCommand([
             "-Q", "-l", "RANDOM", "-r", red, "-b", blue
         ])
@@ -98,6 +100,7 @@ def get_test_params(name: str):
     all_tests_pass = True
     iterations = 10
     fail_tolerance = 0
+    team = None
     
     if find_test_case(name):
         json_path = "test_cases/" + name + ".json"
@@ -115,8 +118,17 @@ def get_test_params(name: str):
             all_tests_pass = json_data["all_tests_pass"]
             iterations = json_data["iterations"]
             fail_tolerance = json_data["tolerance"]
+
+            if json_data["team"] is not None:
+                t = json_data["team"]
+
+                team_keys = t.keys()
+                if "red" not in team_keys or "blue" not in team_keys:
+                    raise ValueError("JSON file malformed. Missing team keys")
+
+                team = t["red"], t["blue"]
     
-    return (watch_score, all_tests_pass, iterations, fail_tolerance)
+    return (watch_score, all_tests_pass, iterations, fail_tolerance, team)
 
 if __name__ == "__main__":
     """
@@ -130,13 +142,14 @@ if __name__ == "__main__":
         test_case = args[0]
     exit_code = 0
     
-    score, all_pass, iteration, tolerance = get_test_params(test_case)
+    score, all_pass, iteration, tolerance, team = get_test_params(test_case)
 
     print("Running tests from %s.json..." % (test_case))
     results = run_tests(track_score=score, 
                         all_tests_pass=all_pass, 
                         iterations=iteration, 
-                        fail_tolerance=tolerance)
+                        fail_tolerance=tolerance,
+                        team=team)
 
     print("\n\nTEST RESULTS")
     print("Ran the tests over %s iterations." % (iteration))
