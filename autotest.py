@@ -76,16 +76,17 @@ def run_tests(track_score: bool = False,
     sum /= iterations
     and_func = lambda arg1, arg2: arg1 and arg2
 
+    passed_test_cases = test_cases.copy()
     if fail_tolerance > 0:
         tolerance_counter = 0
         while tolerance_counter < fail_tolerance + 1:
-            if False in test_cases:
-                test_cases.remove(False)
+            if False in passed_test_cases:
+                passed_test_cases.remove(False)
             tolerance_counter += 1
 
 
     if test_cases:
-        passed_tests = reduce(and_func, test_cases)
+        passed_tests = reduce(and_func, passed_test_cases)
 
     test_results = {}
 
@@ -177,7 +178,7 @@ if __name__ == "__main__":
 
         print("Running tests from %s.json..." % (test_case))
         if team is not None:
-            print("Team configuration: %s" % (team,))
+            print("Custom team configuration (red, blue): %s" % (team,))
         results = run_tests(track_score=score, 
                             all_tests_pass=all_pass, 
                             iterations=iteration, 
@@ -185,23 +186,31 @@ if __name__ == "__main__":
                             team=team,
                             allow_ties=ties)
 
-        print("\n\nTEST RESULTS")
+        print("\n\n\033[1mTest Results\033[0m")
         print("Ran the tests over %s iterations." % (iteration))
 
+        tests_that_pass = results['tests'].count(True)
+        tests_that_fail = results['tests'].count(False)
+
+        print("Tests passes: %s tests." % (tests_that_pass,))
+        print("Tests failed: %s tests." % (tests_that_fail,))
+        
+        if ties:
+            print("* Note: Passed tests ARE including ties.")
+
         if score:
-            print("Average score was: %s points" % (results['avg_score']))
+            print("Average score: %s points" % (results['avg_score']))
 
         if all_pass:
+            print("\nAll Check Test Results")
             if tolerance > 0:
-                print("Note: Fail tolerance set to a max of %s tests." % (tolerance))
+                print("Fail tolerance: %s tests." % (tolerance))
             passed = results['passes_tests']
             if passed:
-                print("All tests PASSED!")
+                print("\033[32;1m✔️ All checks have passed!\033[0m")
             else:
-                print("All tests FAILED!")
+                print("\033[31;1m⨯ All checks have failed!\033[0m")
                 exit_code = 2
-        
-        print("Note: These tests may not reflect your actual grade. Consult your instructor for details.")
-        
+                
         if not disable_exit_check:
             sys.exit(exit_code)
