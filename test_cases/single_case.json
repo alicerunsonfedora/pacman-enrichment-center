@@ -1,6 +1,6 @@
 {
-    "all_tests_pass": true,
-    "watch_score": true,
     "iterations": 1,
-    "tolerance": 0
+    "checks": ["all_games_won", "average_over_zero"],
+    "team": "random",
+    "print_avg_score": true
 }

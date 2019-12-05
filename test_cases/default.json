@@ -1,10 +1,8 @@
 {
-    "all_tests_pass": true,
-    "watch_score": false,
-    "tolerance": 0,
     "iterations": 10,
-    "team": {
-        "red": "myTeam",
-        "blue": "baselineTeam"
-    }
+    "checks": ["all_games_won", "average_over_zero"],
+    "team": "random",
+    "tolerance": 0,
+    "print_avg_score": false,
+    "allow_ties": false
 }

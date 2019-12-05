@@ -1,10 +1,10 @@
 {
-    "iterations": 20,
+    "iterations": 50,
     "checks": ["all_games_won", "average_over_zero"],
-    "tolerance": 5,
     "team": {
         "red": "myTeam",
         "blue": "baselineTeam"
     },
-    "print_avg_score": true
+    "tolerance": 10,
+    "allow_ties": true
 }

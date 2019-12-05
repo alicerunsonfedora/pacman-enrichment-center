@@ -1,216 +1,91 @@
+# Pacman Enrichment Center
 # autotest.py
-# ===========
-# An automatic test service for capture.py
+# ========================
 # (C) 2019 Marquis Kurt.
-# Inspired by Ben Rock's original script
+# Licensed under Non-violent Public License v1.
 
-from random import choice
-from functools import reduce
-from sys import argv
-from os import listdir
-from json import load
-import capture
+from enrichment import TestCase
+import importlib
+import argparse
 import sys
 
-def display_help():
-    print("""\
-Pacman Enrichment Center
-v1.0.2
-
-Paramaters:
---no-exit-clause - Do not return an exit code when running tests
-
-Required:
-The name of the test should be specified as the first argument.
-
-Example:
-autotest.py severe
-    """)
-
-def select_team():
+def generate_custom_checks(name: str):
     """
-        Generate a random team tuple.
+        Write a custom check file used for import.
 
-        :returns: A tuple containing the red team and blue team
+        :param name: The name of the check to create.
     """
+    with open('custom_%s.py' % (name), 'w+') as custom:
+        custom.write("""
+# custom_%s.py
+# =========
+# Written by autotest.py
+# To import this into autotest, pass the custom flag and the
+# name of the file.
 
-    choices = [("myTeam", "baselineTeam"), ("baselineTeam", "myTeam")]
+from autotest import TestCase
 
-    return choice(choices)
-
-def run_tests(track_score: bool = False, 
-                all_tests_pass: bool = True, 
-                iterations: int = 10, 
-                fail_tolerance: int = 0, 
-                team: (str, str) = None,
-                allow_ties: bool = False):
-    """
-        Run a series of tests on capture.py given some parameters.
-
-        :param track_score: Whether the tests should track the score. Defaults to False.
-        :param all_tests_pass: Whether to verify that all of the tests pass. Defaults to True.
-        :param iterations: How many games to run for evaluation. Defaults to 10.
-        :param fail_tolerance: How many times the tests can fail before being marked as a failure. Defaults to 0.
-        :param team: The specified team configuration, if necessary. Defaults to None.
-        :param allow_ties: Whether ties should be counted as successes.
-        :returns: A dictionary containing the requested information.
-    """
-    sum = 0
-    test_cases = []
-
-    for i in range(iterations):
-        red, blue = team if team is not None else select_team()
-        simulated_args = capture.readCommand([
-            "-Q", "-l", "RANDOM", "-r", red, "-b", blue
-        ])
-        game = capture.runGames(**simulated_args)
-        score = game[0].state.data.score
-
-        sum += score
-
-        if red == "myTeam":
-            test_cases.append(score >= 0 if allow_ties else score > 0)
-        else:
-            test_cases.append(score <= 0 if allow_ties else score < 0)
+class ImportedCases(TestCase):
     
-    sum /= iterations
-    and_func = lambda arg1, arg2: arg1 and arg2
+    @TestCase.check(datafield='%s', title="", passed="")
+    def %s(self):
+        # Write your check here and have this check return a boolean
+        # value.
+        return False
+        """ % (name, name, name))
 
-    passed_test_cases = test_cases.copy()
-    if fail_tolerance > 0:
-        tolerance_counter = 0
-        while tolerance_counter < fail_tolerance + 1:
-            if False in passed_test_cases:
-                passed_test_cases.remove(False)
-            tolerance_counter += 1
-
-
-    if test_cases:
-        passed_tests = reduce(and_func, passed_test_cases)
-
-    test_results = {}
-
-    if track_score:
-        test_results['avg_score'] = sum
-
-    if all_tests_pass:
-        test_results['passes_tests'] = passed_tests
-
-    test_results['tests'] = test_cases
-    test_results['iterations'] = iterations
-    test_results['tolerance'] = fail_tolerance
-
-    return test_results
-
-def find_test_case(name: str):
+def initialize_arguments():
     """
-        Check whether the test case is listed in the test cases folder.
-        :param name: The name of the test case.
+        Run through an argument parser and determine what actions to take.
     """
-    tests = listdir("./test_cases")
-    return name + ".json" in tests
+    parser = argparse.ArgumentParser(
+        description="Run tests on agents in capture.py with ease.")
+    parser.add_argument(
+        "test", help="The name of the test to run, or all tests.")
+    parser.add_argument('--disable-exit-clause', nargs='?',
+                        help="Do not return an exit code when running tests.")
+    parser.add_argument('--custom', help="Add additional checks from a file into the test system.")
+    parser.add_argument('--generate-custom-checks', help="Generate a custom check case suitable for import.")
+    return parser.parse_args()
 
-def get_test_params(name: str):
-    """
-        Get the test parameters from a test case.
-        :param name: The name of the test case. Should point to a JSON file.
-        :returns: A tuple containing the params for the test cases.
-        :raises: ValueError if the JSON is malformed.
-    """
-    watch_score = False
-    all_tests_pass = True
-    iterations = 10
-    fail_tolerance = 0
-    team = None
-    ties = False
-    
-    if find_test_case(name):
-        json_path = "test_cases/" + name + ".json"
-        with open(json_path, 'r') as json_file:
-            json_data = load(json_file)
-            
-            required_keys = ["watch_score", "all_tests_pass", "iterations"]
-            json_keys = list(json_data.keys())
-            
-            for key in required_keys:
-                if key not in json_keys:
-                    raise ValueError("JSON file malformed. Missing key: %s" % (key))
-
-            watch_score = json_data["watch_score"]
-            all_tests_pass = json_data["all_tests_pass"]
-            iterations = json_data["iterations"]
-
-            if "allow_ties" in json_keys:
-                ties = json_data["allow_ties"]
-
-            if "tolerance" in json_keys:
-                fail_tolerance = json_data["tolerance"]
-
-            if "team" in json_keys:
-                t = json_data["team"]
-
-                team_keys = t.keys()
-                if "red" not in team_keys or "blue" not in team_keys:
-                    raise ValueError("JSON file malformed. Missing team keys")
-
-                team = t["red"], t["blue"]
-    
-    return (watch_score, all_tests_pass, iterations, fail_tolerance, team, ties)
 
 if __name__ == "__main__":
-    """
-        Run a test case. The only argument to be passed in is the name of the test case.
-        Test cases default to "default", pointing to "test_cases/default.json".
-    """
+    prog_args = initialize_arguments()
+    mainCase = TestCase()
 
-    test_case = "default"
-    args = argv[1:]
-
-    if not args:
-        display_help()
-    else:
-        if args and not args[0].startswith("--"):
-            test_case = args[0]
-        exit_code = 0
-        disable_exit_check = "--no-exit-clause" in args
+    if prog_args.custom is not None:
+        print("Requested custom checks. Finding module...")
+        import_name: str = prog_args.custom 
+        import_name = import_name.replace(".py", "")
+        import_module = None
         
-        score, all_pass, iteration, tolerance, team, ties = get_test_params(test_case)
+        try:
+            import_module = importlib.import_module(import_name)
+        except:
+            print("Module %s not found. Aborting import..." % (import_name))
 
-        print("Running tests from %s.json..." % (test_case))
-        if team is not None:
-            print("Custom team configuration (red, blue): %s" % (team,))
-        results = run_tests(track_score=score, 
-                            all_tests_pass=all_pass, 
-                            iterations=iteration, 
-                            fail_tolerance=tolerance,
-                            team=team,
-                            allow_ties=ties)
+        if import_module is not None:
+            print("Importing test cases from module...")
+            try:
+                custom_checks = getattr(import_module, "ImportedCases")
+                mainCase.inject_custom(custom_checks)
+            except:
+                print("Couldn't import ImportedCases class from module. Aborting import...")
 
-        print("\n\n\033[1mTest Results\033[0m")
-        print("Ran the tests over %s iterations." % (iteration))
+    if prog_args.generate_custom_checks is not None:
+        generate_custom_checks(prog_args.generate_custom_checks)
+        sys.exit(0)
 
-        tests_that_pass = results['tests'].count(True)
-        tests_that_fail = results['tests'].count(False)
+    try:
+        print("Running test '%s'..." % (prog_args.test))
+        mainCase.load(prog_args.test)
+    except:
+        print("Test case %s is missing or malformed. Aborting." %
+              (prog_args.test,))
 
-        print("Tests passes: %s tests." % (tests_that_pass,))
-        print("Tests failed: %s tests." % (tests_that_fail,))
-        
-        if ties:
-            print("* Note: Passed tests ARE including ties.")
+        if prog_args.disable_exit_clause is None:
+            sys.exit(1)
 
-        if score:
-            print("Average score: %s points" % (results['avg_score']))
-
-        if all_pass:
-            print("\nAll Check Test Results")
-            if tolerance > 0:
-                print("Fail tolerance: %s tests." % (tolerance))
-            passed = results['passes_tests']
-            if passed:
-                print("\033[32;1m✔️ All checks have passed!\033[0m")
-            else:
-                print("\033[31;1m⨯ All checks have failed!\033[0m")
-                exit_code = 2
-                
-        if not disable_exit_check:
-            sys.exit(exit_code)
+    exit_code = mainCase.run()
+    if prog_args.disable_exit_clause is None:
+        sys.exit(exit_code)
