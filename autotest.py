@@ -46,12 +46,16 @@ def initialize_arguments():
                         help="Do not return an exit code when running tests.")
     parser.add_argument('--custom', help="Add additional checks from a file into the test system.")
     parser.add_argument('--generate-custom-checks', help="Generate a custom check case suitable for import.")
+    parser.add_argument('--verbose', '-v', help="Retain the output produced from capture.py.")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     prog_args = initialize_arguments()
     mainCase = TestCase()
+
+    if prog_args.verbose is not None:
+        mainCase.verbose = prog_args.verbose
 
     if prog_args.custom is not None:
         print("Requested custom checks. Finding module...")

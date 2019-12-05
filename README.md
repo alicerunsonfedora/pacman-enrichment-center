@@ -21,6 +21,7 @@ python autotest.py default
 - `--disable-exit-clause`: Disable the exit protocol at the end of the test. This is useful for environments that don't use the exit code.
 - `--generate-custom-checks GENERATE_CUSTOM_CHECKS`: Write a custom check yourself that can be imported.
 - `--custom CUSTOM`: The Python file name linking to a custom module.
+- `--verbose`: Retain the output produced by capture.py.
 
 ## Custom test configurations
 
@@ -36,6 +37,21 @@ To write a custom test, create a JSON file in the `test_cases` directory.
 - `allow_ties`: Whether ties should counted as passes in checks.
 - `tolerance`: How many tests should be admitted before reporting a failure.
 - `print_avg_score`: Whether to print the average game score.
+
+### Example configuration
+```json
+{
+    "iterations": 30,
+    "checks": ["average_over_zero"],
+    "team": {
+      "red": "baselineTeam",
+      "blue": "myTeam"
+    },
+    "tolerance": 0,
+    "print_avg_score": false,
+    "allow_ties": true
+}
+```
 
 ## Test checks
 

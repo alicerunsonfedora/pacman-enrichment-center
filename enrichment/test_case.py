@@ -22,6 +22,9 @@ class TestCase():
     results = {}
     "The results of the test case. Usually includes avg_score, tests, passed_tests, and failed_tests"
 
+    verbose: bool = False
+    "Whether capture.py's output will be retained during run."
+
     def check(datafield: str, title: str = "Check", passed: str = "Check passed!",
               failed: str = "Check failed."):
         """
@@ -212,6 +215,9 @@ class TestCase():
 
         allow_ties = self.data["allow_ties"] if "allow_ties" in self.data.keys(
         ) else False
+
+        if not self.verbose:
+            print("\0332J")
 
         print("\033[1mTest Results\033[0m")
         print("Total Iterations: %s" % (self.data['iterations'],))
