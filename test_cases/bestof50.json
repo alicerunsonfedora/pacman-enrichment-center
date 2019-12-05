@@ -1,6 +1,6 @@
 {
     "iterations": 50,
-    "checks": ["all_games_won", "average_over_zero"],
+    "checks": ["all_games_won", "average_over_zero", "majority_win"],
     "team": {
         "red": "myTeam",
         "blue": "baselineTeam"
