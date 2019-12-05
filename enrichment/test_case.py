@@ -217,7 +217,7 @@ class TestCase():
         ) else False
 
         if not self.verbose:
-            print("\0332J")
+            print("\033[2J")
 
         print("\033[1mTest Results\033[0m")
         print("Total Iterations: %s" % (self.data['iterations'],))
